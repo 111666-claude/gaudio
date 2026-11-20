@@ -117,6 +117,38 @@ bpm := segment.CalcBPM(120, 200, 1024, 1024)
 segment.EchoEffect(0.05, 2)
 ```
 
+## Mid/side stereo width and mono preview
+
+Mid/side processing converts the interleaved stereo signal into a mid (center,
+`left + right`) and side (difference, `left - right`) signal, scales the side
+signal and converts it back. Use it to control the stereo width and to preview
+how the audio sounds when folded down to mono on a single speaker.
+
+```go
+// width: stereo width coefficient
+//   1.0 keeps the original signal (the default, a no-op)
+//   0.0 folds the signal down to mono
+//   < 1.0 narrows the stereo image, > 1.0 widens it
+// monoPreview: force a mono fold-down regardless of width
+err := segment.MidSideEffect(1.0, false)
+if err != nil {
+    panic(err) // only for negative or non-finite width values
+}
+
+// Widen the stereo image
+segment.MidSideEffect(1.5, false)
+
+// Narrow it
+segment.MidSideEffect(0.5, false)
+
+// Mono compatibility preview (same as MidSideEffect(0, true))
+segment.MonoPreview()
+```
+
+The segment length, sample rate and channel count never change. If widening
+would push a sample past the allowed -1.0..1.0 range, the whole segment is
+scaled down uniformly to prevent clipping. Mono segments are left untouched.
+
 ## Pitch to note note (needs testing)
 
 ```go
